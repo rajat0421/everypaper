@@ -1,0 +1,17 @@
+{
+  "extends": "@everypaper/tsconfig/base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "types": ["vite/client", "vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
+  "exclude": ["node_modules", "dist", "tests/e2e"]
+}

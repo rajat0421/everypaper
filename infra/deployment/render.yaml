@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: everypaper-api
+    runtime: node
+    plan: starter
+    region: oregon
+    # --prod=false is required: Render sets NODE_ENV=production for the build
+    # step, and pnpm skips devDependencies (incl. the @everypaper/tsconfig and
+    # vitest workspace deps that shared/canvas-core/api need to build) unless
+    # told otherwise.
+    buildCommand: "pnpm install --frozen-lockfile --prod=false && pnpm --filter @everypaper/shared build && pnpm --filter @everypaper/canvas-core build && pnpm --filter @everypaper/api build"
+    startCommand: "pnpm --filter @everypaper/api start"
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://everypaper.com
+      - key: MODERATOR_API_KEY
+        sync: false
+      - key: COOKIE_DOMAIN
+        value: everypaper.com

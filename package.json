@@ -1,0 +1,27 @@
+{
+  "name": "everypaper",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Everypaper — one world, one paper, everyone draws.",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev:web": "pnpm --filter @everypaper/web dev",
+    "dev:api": "pnpm --filter @everypaper/api dev",
+    "build": "pnpm --filter @everypaper/shared build && pnpm --filter @everypaper/canvas-core build && pnpm -r --filter=!@everypaper/shared --filter=!@everypaper/canvas-core build",
+    "build:shared": "pnpm --filter @everypaper/shared build",
+    "build:canvas-core": "pnpm --filter @everypaper/canvas-core build",
+    "build:api": "pnpm --filter @everypaper/api build",
+    "build:web": "pnpm --filter @everypaper/web build",
+    "test": "pnpm -r test",
+    "test:unit": "pnpm -r --filter=!@everypaper/web-e2e test",
+    "test:e2e": "pnpm --filter @everypaper/web exec playwright test",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
