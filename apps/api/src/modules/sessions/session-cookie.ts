@@ -7,7 +7,12 @@ export function setSessionCookie(res: Response, token: string): void {
   res.cookie(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "lax",
+    // The frontend (Vercel) and backend (Render) are deployed on different
+    // domains, so this cookie is always cross-site in production. SameSite=Lax
+    // is never sent on cross-origin fetch/XHR/WebSocket requests, only on
+    // top-level navigations — it must be "none" (which requires Secure) for
+    // the browser to attach it to API/socket calls made from the Vercel origin.
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
     maxAge: SESSION_COOKIE_MAX_AGE_MS,
     domain
