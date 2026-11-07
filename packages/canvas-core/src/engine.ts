@@ -261,11 +261,20 @@ export class CanvasEngine {
   }
 
   private handleWheel(evt: WheelEvent): void {
-    const rect = this.canvas.getBoundingClientRect();
-    const x = evt.clientX - rect.left;
-    const y = evt.clientY - rect.top;
-    const factor = Math.exp(-evt.deltaY * 0.001);
-    this.viewport.zoomAtScreenPoint(x, y, factor);
+    // Trackpad pinch-to-zoom is synthesized by the browser as `wheel` + ctrlKey,
+    // and an explicit Cmd/Ctrl+scroll is the conventional "zoom" modifier.
+    // Plain two-finger trackpad scrolling (no ctrlKey) must pan, not zoom —
+    // otherwise every scroll gesture zooms the canvas instead of panning it.
+    if (evt.ctrlKey || evt.metaKey) {
+      const rect = this.canvas.getBoundingClientRect();
+      const x = evt.clientX - rect.left;
+      const y = evt.clientY - rect.top;
+      const factor = Math.exp(-evt.deltaY * 0.001);
+      this.viewport.zoomAtScreenPoint(x, y, factor);
+    } else {
+      this.viewport.pan(-evt.deltaX, -evt.deltaY);
+    }
+    this.requestFrame();
   }
 }
 
