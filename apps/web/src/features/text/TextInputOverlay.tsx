@@ -29,6 +29,17 @@ export function TextInputOverlay() {
   const setColor = useToolStore((s) => s.setColor);
   const setFontSize = useToolStore((s) => s.setFontSize);
 
+  const OVERLAY_WIDTH = 260;
+  const OVERLAY_EST_HEIGHT = 140;
+  const clampedLeft = Math.min(Math.max(8, screenX), window.innerWidth - OVERLAY_WIDTH - 8);
+  const clampedTop = Math.min(Math.max(8, screenY), window.innerHeight - OVERLAY_EST_HEIGHT - 8);
+
+  // Text is rendered on the canvas at `fontSize * zoom` (world-space object,
+  // same as stroke width) — preview it at that same size so what you type
+  // looks like what actually ends up on the canvas, not a fixed small size.
+  const zoom = engine?.viewport.getCamera().zoom ?? 1;
+  const previewFontSize = Math.min(48, Math.max(10, fontSize * zoom));
+
   const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const committedRef = useRef(false);
@@ -91,7 +102,7 @@ export function TextInputOverlay() {
   return (
     <div
       className="absolute z-30 flex min-w-[180px] max-w-[260px] -translate-x-1 -translate-y-1 flex-col gap-2 rounded-xl border border-line bg-white p-2 shadow-md"
-      style={{ left: screenX, top: screenY }}
+      style={{ left: clampedLeft, top: clampedTop }}
     >
       <textarea
         ref={textareaRef}
@@ -111,7 +122,7 @@ export function TextInputOverlay() {
         rows={2}
         placeholder="Type something…"
         className="w-full resize-none rounded-md border border-line p-1.5 text-sm outline-none focus:border-accent"
-        style={{ color, fontSize: Math.min(fontSize, 20) }}
+        style={{ color, fontSize: previewFontSize }}
       />
       <div className="flex items-center gap-1.5">
         {PRESET_COLORS.map((preset) => (

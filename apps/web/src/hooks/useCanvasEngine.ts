@@ -23,6 +23,11 @@ import { parseShareParams } from "../lib/shareLink";
 const TILE_SUBSCRIBE_DEBOUNCE_MS = 150;
 const TEXT_ERASE_RADIUS_PX = 24;
 
+/** MongoDB ObjectIds are 24 hex chars; clientStrokeIds are UUIDs (36 chars, with dashes). */
+function isServerStrokeId(id: string): boolean {
+  return /^[0-9a-f]{24}$/i.test(id);
+}
+
 interface StrokeStartedPayload {
   sessionId: string;
   clientStrokeId: string;
@@ -63,6 +68,10 @@ export function useCanvasEngine(
   const myStrokes = useRef<Map<string, Stroke>>(new Map());
   const remoteActiveStrokes = useRef<Map<string, Stroke>>(new Map());
   const appliedSyncIds = useRef<Set<string>>(new Set());
+  // clientStrokeIds whose undo fired before the server assigned them a real
+  // id (STROKE_COMPLETED hadn't arrived yet) — deletion is deferred until the
+  // id is known, see handleStrokeCompleted below.
+  const pendingDeleteStrokeIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -153,8 +162,17 @@ export function useCanvasEngine(
         },
         onUndoStroke: (strokeId) => {
           canvasEngine.applyRemoteStrokeDelete(strokeId);
-          socketService.strokeDelete({ strokeId });
           void offlineDb.removePendingOp(strokeId);
+          // Still a clientStrokeId (a UUID), meaning STROKE_END hasn't round-tripped
+          // yet and the server doesn't know this stroke by that id. Sending the
+          // delete now would fail server-side (and a moment later the in-flight
+          // STROKE_COMPLETED would re-add the "deleted" stroke). Defer until
+          // handleStrokeCompleted below resolves the real id.
+          if (!isServerStrokeId(strokeId)) {
+            pendingDeleteStrokeIds.current.add(strokeId);
+            return;
+          }
+          socketService.strokeDelete({ strokeId });
         },
         onRedoStroke: (strokeId) => {
           const stroke = myStrokes.current.get(strokeId);
@@ -302,6 +320,11 @@ export function useCanvasEngine(
           if (existingLocal) {
             myStrokes.current.delete(localId);
             myStrokes.current.set(dto.id, { ...existingLocal, id: dto.id });
+          }
+          if (pendingDeleteStrokeIds.current.has(localId)) {
+            pendingDeleteStrokeIds.current.delete(localId);
+            canvasEngine.applyRemoteStrokeDelete(dto.id);
+            socketService.strokeDelete({ strokeId: dto.id });
           }
         }
         void offlineDb.removePendingOp(localId ?? stroke.id);

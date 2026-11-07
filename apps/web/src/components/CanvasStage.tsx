@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { EngineContext } from "../app/EngineContext";
 import { useCanvasEngine } from "../hooks/useCanvasEngine";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useSyncDrawingStyle } from "../hooks/useSyncDrawingStyle";
 import { Toolbar } from "../features/toolbar/Toolbar";
 import { TextInputOverlay } from "../features/text/TextInputOverlay";
 import { StatusPill } from "./StatusPill";
@@ -20,6 +21,7 @@ export function CanvasStage({ sessionId }: CanvasStageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engine = useCanvasEngine(canvasRef, sessionId);
   useKeyboardShortcuts(engine);
+  useSyncDrawingStyle(engine);
 
   return (
     <EngineContext.Provider value={{ engine, sessionId }}>
