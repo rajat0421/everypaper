@@ -124,10 +124,17 @@ export function useCanvasEngine(
       }
     };
 
+    // Must match the actual page background painted behind the canvas
+    // (--color-paper in src/styles/index.css), or the eraser's destination-out
+    // holes will reveal a visibly different color than the rest of the canvas.
+    const backgroundColor =
+      getComputedStyle(document.documentElement).getPropertyValue("--color-paper").trim() || "#ffffff";
+
     canvasEngine = new CanvasEngine({
       canvas,
       sessionId,
       fetchTile,
+      backgroundColor,
       callbacks: {
         onStrokeStart: (stroke, style) => {
           const startPoint = stroke.points[0];

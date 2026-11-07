@@ -71,7 +71,13 @@ export class Renderer {
     tileIds: string[],
     getTile: RenderableTileSource,
     extraStrokes: Stroke[] = [],
-    extraTexts: TextItem[] = []
+    extraTexts: TextItem[] = [],
+    // Must match the page's actual background color behind the canvas: the
+    // eraser tool uses destination-out, which punches fully transparent holes
+    // through this fill, revealing whatever is behind the canvas element. If
+    // this doesn't match that background exactly, erased areas visibly differ
+    // in color from the rest of the "blank" canvas.
+    backgroundColor = "#ffffff"
   ): void {
     // Clear in the *current* (device-pixel-ratio-scaled) transform, which the
     // engine sets up once on resize() to map logical/CSS pixel coordinates to
@@ -82,7 +88,7 @@ export class Renderer {
     // visible outside that region — most noticeable as "ghosting" while
     // zooming/panning, since every frame redraws rapidly.
     const screen = coords.getScreen();
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, screen.width, screen.height);
 
     const drawnStrokeIds = new Set<string>();

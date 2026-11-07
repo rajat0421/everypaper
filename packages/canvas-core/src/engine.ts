@@ -14,6 +14,8 @@ export interface CanvasEngineOptions {
   canvas: HTMLCanvasElement;
   sessionId: string;
   fetchTile: TileFetcher;
+  /** Must match the page's actual CSS background color behind the canvas — see Renderer.render(). */
+  backgroundColor?: string;
   callbacks?: DrawingControllerCallbacks & {
     onTextToolTap?: (worldX: number, worldY: number) => void;
     onVisibleTilesChanged?: (tileIds: string[]) => void;
@@ -164,7 +166,8 @@ export class CanvasEngine {
         texts: this.tileManager.getTextsForTile(tileId)
       }),
       [...this.tileManager.getLocalStrokes(), ...(this.drawing.getActiveStroke() ? [this.activeStrokeAsStroke()!] : [])],
-      this.tileManager.getLocalTexts()
+      this.tileManager.getLocalTexts(),
+      this.options.backgroundColor
     );
   }
 
