@@ -290,7 +290,22 @@ export function useCanvasEngine(
       try {
         const stroke = strokeDtoToStroke(dto);
         canvasEngine.applyRemoteStroke(stroke);
-        void offlineDb.removePendingOp(stroke.id);
+
+        // The server assigns its own `id`, distinct from the clientStrokeId this
+        // stroke was drawn and tracked under locally (undo stack, myStrokes map,
+        // offline queue). Without reconciling ids here, undo silently stops
+        // working for any stroke as soon as it finishes syncing.
+        const localId = dto.clientStrokeId;
+        if (localId && localId !== dto.id) {
+          canvasEngine.drawing.remapStrokeId(localId, dto.id);
+          const existingLocal = myStrokes.current.get(localId);
+          if (existingLocal) {
+            myStrokes.current.delete(localId);
+            myStrokes.current.set(dto.id, { ...existingLocal, id: dto.id });
+          }
+        }
+        void offlineDb.removePendingOp(localId ?? stroke.id);
+
         for (const key of [...remoteActiveStrokes.current.keys()]) {
           if (key.endsWith(`:${dto.id}`)) remoteActiveStrokes.current.delete(key);
         }

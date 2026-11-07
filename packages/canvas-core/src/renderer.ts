@@ -73,12 +73,17 @@ export class Renderer {
     extraStrokes: Stroke[] = [],
     extraTexts: TextItem[] = []
   ): void {
+    // Clear in the *current* (device-pixel-ratio-scaled) transform, which the
+    // engine sets up once on resize() to map logical/CSS pixel coordinates to
+    // the canvas's real device-pixel backing store. Resetting to the identity
+    // transform here and filling `screen.width x screen.height` (logical CSS
+    // pixels) only clears a fraction of the actual backing store on any
+    // devicePixelRatio > 1 display, leaving stale pixels from previous frames
+    // visible outside that region — most noticeable as "ghosting" while
+    // zooming/panning, since every frame redraws rapidly.
     const screen = coords.getScreen();
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, screen.width, screen.height);
-    ctx.restore();
 
     const drawnStrokeIds = new Set<string>();
     for (const tileId of tileIds) {

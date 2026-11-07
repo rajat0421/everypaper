@@ -23,7 +23,8 @@ export function toStrokeDto(doc: StrokeDoc): StrokeDto {
     bounds: doc.bounds as Bounds,
     tileIds: doc.tileIds,
     createdAt: (doc.createdAt as Date).toISOString(),
-    version: doc.version
+    version: doc.version,
+    clientStrokeId: doc.clientStrokeId ?? undefined
   };
 }
 

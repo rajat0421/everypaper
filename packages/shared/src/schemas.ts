@@ -89,7 +89,11 @@ export const strokeDtoSchema = z.object({
   bounds: boundsSchema,
   tileIds: z.array(tileIdSchema),
   createdAt: z.string(),
-  version: z.number()
+  version: z.number(),
+  // Echoes the client-generated id the stroke was drawn under, so the
+  // originating client can reconcile its local (clientStrokeId-keyed) state
+  // once the server assigns this stroke its own `id`.
+  clientStrokeId: z.string().optional()
 });
 export type StrokeDto = z.infer<typeof strokeDtoSchema>;
 

@@ -146,6 +146,21 @@ export class DrawingController {
     }
   }
 
+  /**
+   * Renames a stroke's id in the undo/redo history after the server assigns
+   * it a permanent id (different from the clientStrokeId it was drawn under).
+   * Without this, undo stops working for any stroke that has already synced.
+   */
+  remapStrokeId(oldId: string, newId: string): void {
+    if (oldId === newId) return;
+    for (const entry of this.undoStack) {
+      if (entry.type === "stroke" && entry.id === oldId) entry.id = newId;
+    }
+    for (const entry of this.redoStack) {
+      if (entry.type === "stroke" && entry.id === oldId) entry.id = newId;
+    }
+  }
+
   canUndo(): boolean {
     return this.undoStack.length > 0;
   }
